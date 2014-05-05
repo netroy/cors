@@ -152,7 +152,7 @@ func (o *Options) PreflightHeader(origin, rMethod, rHeaders string) (headers map
 	if o.MaxAge > time.Duration(0) {
 		headers[headerMaxAge] = strconv.FormatInt(int64(o.MaxAge/time.Second), 10)
 	}
-	return
+	return headers
 }
 
 // Looks up if the origin matches one of the patterns
