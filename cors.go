@@ -182,8 +182,13 @@ func Allow(opts *Options) http.HandlerFunc {
 	}
 
 	return func(res http.ResponseWriter, req *http.Request) {
+		// Do CORS headers only if the `Origin` header was present
+		origin := req.Header.Get(headerOrigin)
+		if origin == "" {
+			return
+		}
+
 		var (
-			origin           = req.Header.Get(headerOrigin)
 			requestedMethod  = req.Header.Get(headerRequestMethod)
 			requestedHeaders = req.Header.Get(headerRequestHeaders)
 			// additional headers to be added
