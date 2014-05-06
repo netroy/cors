@@ -200,13 +200,16 @@ func Allow(opts *Options) http.HandlerFunc {
 			(requestedMethod != "" || requestedHeaders != "") {
 			// TODO: if preflight, respond with exact headers if allowed
 			headers = opts.PreflightHeader(origin, requestedMethod, requestedHeaders)
-			res.WriteHeader(http.StatusOK)
 		} else {
 			headers = opts.Header(origin)
 		}
 
 		for key, value := range headers {
 			res.Header().Set(key, value)
+		}
+
+		if req.Method == "OPTIONS" {
+			res.WriteHeader(http.StatusOK)
 		}
 	}
 }
