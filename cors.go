@@ -184,32 +184,31 @@ func Allow(opts *Options) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Do CORS headers only if the `Origin` header was present
 		origin := req.Header.Get(headerOrigin)
-		if origin == "" {
-			return
-		}
+		if origin != "" {
+			var (
+				requestedMethod  = req.Header.Get(headerRequestMethod)
+				requestedHeaders = req.Header.Get(headerRequestHeaders)
+				// additional headers to be added
+				// to the response.
+				headers map[string]string
+			)
 
-		var (
-			requestedMethod  = req.Header.Get(headerRequestMethod)
-			requestedHeaders = req.Header.Get(headerRequestHeaders)
-			// additional headers to be added
-			// to the response.
-			headers map[string]string
-		)
+			if req.Method == "OPTIONS" &&
+				(requestedMethod != "" || requestedHeaders != "") {
+				// TODO: if preflight, respond with exact headers if allowed
+				headers = opts.PreflightHeader(origin, requestedMethod, requestedHeaders)
+			} else {
+				headers = opts.Header(origin)
+			}
 
-		if req.Method == "OPTIONS" &&
-			(requestedMethod != "" || requestedHeaders != "") {
-			// TODO: if preflight, respond with exact headers if allowed
-			headers = opts.PreflightHeader(origin, requestedMethod, requestedHeaders)
-		} else {
-			headers = opts.Header(origin)
-		}
-
-		for key, value := range headers {
-			res.Header().Set(key, value)
+			for key, value := range headers {
+				res.Header().Set(key, value)
+			}
 		}
 
 		if req.Method == "OPTIONS" {
 			res.WriteHeader(http.StatusOK)
+			res.Write([]byte(""))
 		}
 	}
 }
